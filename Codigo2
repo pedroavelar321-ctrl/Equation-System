@@ -1,0 +1,151 @@
+def determinante(matriz):
+    """Calcula el determinante de una matriz usando expansión por menores"""
+    n = len(matriz)
+    
+    # Caso base: matriz 1x1
+    if n == 1:
+        return matriz[0][0]
+    
+    # Caso base: matriz 2x2
+    if n == 2:
+        return matriz[0][0] * matriz[1][1] - matriz[0][1] * matriz[1][0]
+    
+    # Caso recursivo: expansión por la primera fila
+    det = 0
+    for j in range(n):
+        # Crear matriz menor (eliminar fila 0 y columna j)
+        menor = []
+        for i in range(1, n):
+            fila = []
+            for k in range(n):
+                if k != j:
+                    fila.append(matriz[i][k])
+            menor.append(fila)
+        
+        # Calcular determinante con signo alternado
+        cofactor = ((-1) ** j) * matriz[0][j] * determinante(menor)
+        det += cofactor
+    
+    return det
+
+def copiar_matriz(matriz):
+    """Crea una copia profunda de una matriz"""
+    return [fila[:] for fila in matriz]
+
+def norma_euclidiana(vector):
+    """Calcula la norma euclidiana de un vector"""
+    suma = 0
+    for x in vector:
+        suma += x * x
+    return suma ** 0.5
+
+def producto_punto(matriz, vector):
+    """Calcula el producto de una matriz por un vector"""
+    n = len(matriz)
+    resultado = []
+    for i in range(n):
+        suma = 0
+        for j in range(len(vector)):
+            suma += matriz[i][j] * vector[j]
+        resultado.append(suma)
+    return resultado
+
+def diferencia_vectores(v1, v2):
+    """Calcula la diferencia entre dos vectores"""
+    return [v1[i] - v2[i] for i in range(len(v1))]
+
+def resolver_cramer(A, b):
+    """
+    Resuelve un sistema de ecuaciones nxn usando la Regla de Cramer
+    
+    Parámetros:
+    A: matriz de coeficientes (nxn)
+    b: vector de términos independientes (nx1)
+    
+    Retorna:
+    x: vector solución (nx1)
+    """
+    n = len(A)
+    det_A = determinante(A)
+    
+    # Verificar si el sistema tiene solución única
+    if abs(det_A) < 1e-10:
+        print("Error: El determinante de la matriz es cero. El sistema no tiene solución única.")
+        return None
+    
+    x = [0] * n
+    
+    # Aplicar la Regla de Cramer
+    for i in range(n):
+        # Crear matriz Ai (reemplazar columna i con vector b)
+        Ai = copiar_matriz(A)
+        for j in range(n):
+            Ai[j][i] = b[j]
+        
+        # Calcular xi = det(Ai) / det(A)
+        x[i] = determinante(Ai) / det_A
+    
+    return x
+
+def main():
+    print("="*50)
+    print("SOLVER DE SISTEMAS DE ECUACIONES - REGLA DE CRAMER")
+    print("="*50)
+    
+    # Obtener dimensión del sistema
+    n = int(input("\nIngrese el orden del sistema (n): "))
+    
+    # Inicializar matrices
+    A = [[0.0] * n for _ in range(n)]
+    b = [0.0] * n
+    
+    # Entrada de la matriz de coeficientes A
+    print(f"\nIngrese los coeficientes de la matriz A ({n}x{n}):")
+    for i in range(n):
+        for j in range(n):
+            A[i][j] = float(input(f"A[{i+1}][{j+1}] = "))
+    
+    # Entrada del vector de términos independientes b
+    print(f"\nIngrese los términos independientes (b):")
+    for i in range(n):
+        b[i] = float(input(f"b[{i+1}] = "))
+    
+    # Mostrar sistema
+    print("\n" + "="*50)
+    print("SISTEMA DE ECUACIONES:")
+    print("="*50)
+    print("Matriz A:")
+    for fila in A:
+        print([f"{x:.6f}" for x in fila])
+    print("\nVector b:")
+    print([f"{x:.6f}" for x in b])
+    
+    # Resolver sistema
+    print("\n" + "="*50)
+    print("RESOLVIENDO...")
+    print("="*50)
+    
+    det_A = determinante(A)
+    print(f"Determinante de A: {det_A:.6f}")
+    
+    solucion = resolver_cramer(A, b)
+    
+    if solucion is not None:
+        print("\n" + "="*50)
+        print("SOLUCIÓN:")
+        print("="*50)
+        for i in range(n):
+            print(f"x[{i+1}] = {solucion[i]:.6f}")
+        
+        # Verificación
+        print("\n" + "="*50)
+        print("VERIFICACIÓN (A·x = b):")
+        print("="*50)
+        resultado = producto_punto(A, solucion)
+        print("A·x =", [f"{x:.6f}" for x in resultado])
+        print("b   =", [f"{x:.6f}" for x in b])
+        diferencia = diferencia_vectores(resultado, b)
+        print("Diferencia:", norma_euclidiana(diferencia))
+
+if __name__ == "__main__":
+    main()
